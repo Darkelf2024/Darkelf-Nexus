@@ -53,7 +53,7 @@ through **Tor** to reduce correlation and surveillance.
 
 ### Requirements
 
--   Python 3.10+
+-   Python 3.11+
 -   Tor installed on system
 -   Pip installation - In Progress!
 
