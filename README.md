@@ -1,5 +1,11 @@
 # Darkelf Nexus
 
+<p align="center">
+  <img src="https://github.com/Darkelf2024/Darkelf-Quantum-Browser/blob/main/Quantum_Home.png"
+       alt="Darkelf Quantum Browser"
+       width="900">
+</p>
+
 **Ephemeral, Privacy-Focused Web Browser (Qt / WebEngine Build)**\
 A hardened Chromium-based browser designed for **maximum anonymity, zero
 persistence, and on-device threat defense**.
