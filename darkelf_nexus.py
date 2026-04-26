@@ -1,5 +1,5 @@
 """
-# Darkelf Nexus Browser v4.3.7
+# Darkelf Nexus Browser v4.3.8
 Ephemeral, Privacy-Focused Web Browser (Qt / WebEngine Build)
 
 Copyright (C) 2025 Dr. Kevin Moore
