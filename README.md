@@ -23,35 +23,35 @@ through **Tor** to reduce correlation and surveillance.
 
 ## 🔥 Highlights
 
--   **🧠 Ephemeral by Default**\
-    All browsing data (cookies, cache, history, storage) is kept in
-    memory and wiped on exit.
+- **🧠 Ephemeral by Default**\
+  All browsing data (cookies, cache, history, storage, service workers) is kept in
+  memory and wiped on exit.
 
--   **🕵️ Tor-Integrated Privacy**\
-    Built-in Tor routing with optional circuit rotation to minimize
-    tracking and linkability.
+- **🕵️ Tor-Integrated Privacy**\
+  First-class Tor routing with optional **circuit rotation** and isolation controls to minimize
+  tracking, linkability, and network correlation.
 
--   **🚫 Zero Telemetry**\
-    No analytics, no tracking, no external data collection---ever.
+- **🧬 Identity Isolation Engine**\
+  Automatic per-site identity separation to reduce cross-site fingerprinting, cookie re-use,
+  and tracker correlation.
 
--   **🧱 Advanced Network Filtering**\
-    EasyList + heuristic filtering engine blocks ads, trackers, and
-    malicious requests.
+- **🧱 Advanced Network Filtering**\
+  EasyList-style blocking plus heuristic request inspection to stop ads, trackers, and
+  known-malicious endpoints before they load.
 
--   **🧬 Identity Isolation Engine**\
-    Automatic identity rotation prevents cross-site fingerprinting and
-    tracking.
+- **🤖 On-Device AI Protection (Darkelf MiniAI)**\
+  Local-only detection of suspicious scripts, exploit-like behaviors, and tracker patterns in
+  real time—no cloud, no data exfiltration.
 
--   **🤖 On-Device AI Protection**\
-    Darkelf MiniAI detects trackers, exploits, and suspicious behavior
-    in real time---locally.
+- **🔒 Hardened Security Model**\
+  HTTPS enforcement, WebRTC leak prevention, reduced fingerprint surface, stricter defaults,
+  and sandboxed downloads.
 
--   **🔒 Hardened Security Model**\
-    HTTPS enforcement, WebRTC leak prevention, fingerprint surface
-    reduction, and sandboxed downloads.
+- **🚫 Zero Telemetry**\
+  No analytics, no tracking beacons, and no external data collection—ever.
 
--   **⚡ Chromium Engine (Qt WebEngine)**\
-    Modern, stable rendering with enhanced privacy controls.
+- **⚡ Chromium Engine (Qt WebEngine)**\
+  Modern rendering and compatibility with an added privacy-first control surface.
 
 ------------------------------------------------------------------------
 
@@ -59,15 +59,8 @@ through **Tor** to reduce correlation and surveillance.
 
 ### Requirements
 
--   Python 3.11+
--   Tor installed on system
--   Pip installation - In Progress!
-
-### Install Dependencies
-
-``` bash
-pip install PySide6
-```
+- Python 3.11+
+- Tor installed on system
 
 ### Run
 
@@ -92,5 +85,5 @@ GNU Lesser General Public License v3.0 (LGPL-3.0-or-later)
 
 ## 👤 Author
 
-Dr. Kevin Moore\
+Dr. Kevin Moore\
 Darkelf Project --- Nexus Edition (2025)
