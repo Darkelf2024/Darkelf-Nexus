@@ -334,6 +334,14 @@ def _find_tor_binary():
 
     return tor_path
 
+def _tor_port_open(port):
+    try:
+        s = socket.create_connection(("127.0.0.1", port), timeout=1)
+        s.close()
+        return True
+    except:
+        return False
+
 def ensure_tor():
     """
     Start Tor if not already running.
