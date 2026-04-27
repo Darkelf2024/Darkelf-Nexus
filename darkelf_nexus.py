@@ -302,9 +302,9 @@ FIREFOX_TOR_UA = (
 TOR_SOCKS_PORT = 9052
 TOR_CONTROL_PORT = 9051
 
-def _tor_port_open(port):
+def _tor_running_ok():
     try:
-        s = socket.create_connection(("127.0.0.1", port), timeout=1)
+        s = socket.create_connection(("127.0.0.1", TOR_SOCKS_PORT), timeout=2)
         s.close()
         return True
     except:
@@ -340,18 +340,28 @@ def ensure_tor():
     Blocks until SOCKS port is ready.
     """
 
+    # ✅ Case 1: Tor already running and healthy
+    if _tor_running_ok():
+        return None
+
+    # ⚠️ Case 2: Port open but Tor is broken → clean it
     if _tor_port_open(TOR_SOCKS_PORT):
-        return None  # already running
+        print("[Tor] Stale instance detected, cleaning up...")
+        subprocess.run(
+            ["pkill", "-f", "tor"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        time.sleep(0.5)
 
     tor_bin = _find_tor_binary()
 
-    # Optional: minimal safe environment (prevents PATH abuse)
     safe_env = {
         "PATH": os.path.dirname(tor_bin),
     }
 
     try:
-        proc = subprocess.Popen(  # nosec B603, B607
+        proc = subprocess.Popen(
             [
                 tor_bin,
                 "SocksPort", str(TOR_SOCKS_PORT),
@@ -364,17 +374,17 @@ def ensure_tor():
     except Exception as e:
         raise RuntimeError(f"Failed to start Tor: {e}")
 
-    # Wait until Tor is ready
-    for _ in range(50):
-        if _tor_port_open(TOR_SOCKS_PORT):
+    # ⏳ Wait longer (Tor can be slow on first boot)
+    for _ in range(100):  # ~20 seconds
+        if _tor_running_ok():
             return proc
         time.sleep(0.2)
 
-    # Cleanup if failed
+    # ❌ Cleanup if failed
     try:
         proc.terminate()
     except Exception:
-        proc = None  # explicit fallback
+        pass
 
     raise RuntimeError("Tor failed to start")
     
