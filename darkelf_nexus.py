@@ -333,7 +333,7 @@ def _find_tor_binary():
         raise RuntimeError("Tor binary not found")
 
     return tor_path
-
+    
 def _tor_port_open(port):
     try:
         s = socket.create_connection(("127.0.0.1", port), timeout=1)
@@ -341,7 +341,7 @@ def _tor_port_open(port):
         return True
     except:
         return False
-
+        
 def ensure_tor():
     """
     Start Tor if not already running.
@@ -467,8 +467,8 @@ def should_rotate():
     
 BOOTUP_CANVAS_SEED = secrets.randbits(32) & 0xFFFFFFFF
         
-#BOOT_SEED = secrets.token_hex(32)
 DUCK_LITE_HTTPS = "https://duckduckgo.com/lite/"
+DUCK_LITE_ONION = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/lite/"
 MUTE_LOGS_AFTER_BOOT_MS = 0
 
 existing = os.environ.get("QTWEBENGINE_CHROMIUM_FLAGS", "")
@@ -1095,13 +1095,16 @@ class StealthInterceptor(QWebEngineUrlRequestInterceptor):
         self.hsts_hosts = set()  # remember HTTPS-capable hosts
 
     def interceptRequest(self, info):
-
+                
         qurl = info.requestUrl()
         req_url = qurl.toString()
                 
         scheme = (qurl.scheme() or "").lower()
         host = (qurl.host() or "").lower()
-
+        
+        if host.endswith(".onion"):
+            return
+            
         self._apply_special_headers(info, host)
         # --------------------------------------------------
         # MiniAI Panic Mode
@@ -3928,20 +3931,26 @@ class DarkelfBrowser(QMainWindow):
         if not text:
             self._add_tab(home=True)
             return
+
         has_scheme = re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', text) is not None
         looks_like_domain = re.match(r'^[\w.-]+\.[A-Za-z]{2,}(/|$)', text) is not None
         looks_like_ip_or_local = re.match(r'^(localhost|(?:\d{1,3}\.){3}\d{1,3})(:\d+)?(/|$)?$', text) is not None
+
         if has_scheme:
             url = text
+
         elif looks_like_domain or looks_like_ip_or_local:
-            url = "https://" + text
+            if text.endswith(".onion"):
+                url = "http://" + text
+            else:
+                url = "https://" + text
+
         else:
-            base = DUCK_LITE_HTTPS
+            # ✅ THIS is where it belongs
+            base = DUCK_LITE_ONION if _tor_running_ok() else DUCK_LITE_HTTPS
             url = base + "?q=" + quote_plus(text)
 
-        # SANIIZE HERE!
         url = sanitize_url_clearurls(url)
-
         self._add_tab(url=url)
         
     def debounce_cleanup(self, delay=5000):
