@@ -342,25 +342,46 @@ def _tor_port_open(port):
     except:
         return False
         
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+def _kill_existing_tor():
+    """
+    Safely terminate existing Tor processes.
+    """
+
+    pkill_bin = shutil.which("pkill") or "/usr/bin/pkill"
+
+    try:
+        # SAFE: no shell=True, args are static, no user input
+        subprocess.run(
+            [pkill_bin, "-f", "tor"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False
+        )  # nosec B603
+        time.sleep(0.5)
+
+    except Exception as e:
+        print("[Tor] pkill failed:", e)
+
+
 def ensure_tor():
     """
     Start Tor if not already running.
     Blocks until SOCKS port is ready.
     """
 
-    # ✅ Case 1: Tor already running and healthy
+    # ✅ Already running
     if _tor_running_ok():
         return None
 
-    # ⚠️ Case 2: Port open but Tor is broken → clean it
+    # ⚠️ Stale instance cleanup
     if _tor_port_open(TOR_SOCKS_PORT):
         print("[Tor] Stale instance detected, cleaning up...")
-        subprocess.run(
-            ["pkill", "-f", "tor"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        time.sleep(0.5)
+        _kill_existing_tor()
 
     tor_bin = _find_tor_binary()
 
@@ -369,6 +390,7 @@ def ensure_tor():
     }
 
     try:
+        # SAFE: tor_bin is resolved via shutil.which (trusted path)
         proc = subprocess.Popen(
             [
                 tor_bin,
@@ -378,21 +400,33 @@ def ensure_tor():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             env=safe_env
-        )
+        )  # nosec B603
+
     except Exception as e:
         raise RuntimeError(f"Failed to start Tor: {e}")
 
-    # ⏳ Wait longer (Tor can be slow on first boot)
-    for _ in range(100):  # ~20 seconds
+    # ⏳ Wait for Tor
+    timeout = 25
+    start = time.time()
+
+    while time.time() - start < timeout:
         if _tor_running_ok():
             return proc
         time.sleep(0.2)
 
     # ❌ Cleanup if failed
+    print("[Tor] Startup timeout, terminating...")
+
     try:
         proc.terminate()
-    except Exception:
-        pass
+        proc.wait(timeout=3)
+    except Exception as e:
+        print("[Tor] terminate failed:", e)
+
+    try:
+        proc.kill()
+    except Exception as e:
+        print("[Tor] kill failed:", e)
 
     raise RuntimeError("Tor failed to start")
     
