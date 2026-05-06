@@ -98,18 +98,17 @@ DUCK_LITE_ONION = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzc
 # ===================== Chromium Flags (SAFE INIT) =====================
 
 def apply_chromium_flags():
-    # 🔥 ALWAYS overwrite (no accumulation)
     os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
         "--disable-sync "
         "--metrics-recording-only "
         "--no-first-run "
         "--disable-breakpad "
 
-        # 🔥 CRITICAL: use socks5h (Tor DNS routing)
+        # Tor SOCKS proxy
         "--proxy-server=socks5://127.0.0.1:9052 "
 
-        # 🔥 CRITICAL: clean format (no quotes, no extra spaces)
-        "--host-resolver-rules=MAP * ~NOTFOUND,EXCLUDE 127.0.0.1 "
+        # Correct Chromium syntax
+        '--host-resolver-rules="MAP * 0.0.0.0 , EXCLUDE localhost" '
 
         # YouTube bypass
         "--proxy-bypass-list=<-loopback>;"
