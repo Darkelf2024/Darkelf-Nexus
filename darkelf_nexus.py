@@ -542,9 +542,6 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = existing + (
     "*.ytimg.com;"
     "*.youtubei.googleapis.com"
 
-    # ===== DNS LEAK PROTECTION =====
-    "--host-resolver-rules=MAP * ~NOTFOUND,EXCLUDE 127.0.0.1"
-
     # ===== WEBRTC HARD KILL =====
     " --force-webrtc-ip-handling-policy=disable_non_proxied_udp"
     " --webrtc-ip-handling-policy=disable_non_proxied_udp"
@@ -553,7 +550,6 @@ os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = existing + (
     # ===== OPTIONAL HARDENING =====
     " --disable-features=WebRTC,MediaRouter,OptimizationHints"
     " --disable-background-networking"
-    " --disable-features=UserAgentClientHint"
 )
 
 EASYLIST_URLS = [
