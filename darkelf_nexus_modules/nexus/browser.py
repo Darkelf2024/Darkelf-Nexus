@@ -61,6 +61,7 @@ from nexus.utils import (
     should_rotate,
     rotate_internal_seed,
     _safe_download_dir,
+    _randomized_filename,
     sanitize_url_clearurls,
     DUCK_LITE_ONION,
     DUCK_LITE_HTTPS,
