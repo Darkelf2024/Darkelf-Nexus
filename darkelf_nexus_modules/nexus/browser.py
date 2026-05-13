@@ -34,7 +34,7 @@ from PySide6.QtCore import (
 from PySide6.QtGui import (
     QAction, QIcon, QPixmap, QPainter, QColor,
     QPalette, QPen, QBrush, QPolygonF,
-    QPainterPath, QFont
+    QPainterPath, QFont, QKeySequence
 )
 
 # --- Qt Widgets ---
@@ -61,7 +61,6 @@ from nexus.utils import (
     should_rotate,
     rotate_internal_seed,
     _safe_download_dir,
-    _randomized_filename,
     sanitize_url_clearurls,
     DUCK_LITE_ONION,
     DUCK_LITE_HTTPS,
@@ -1721,8 +1720,8 @@ class HardenedWebPage(QWebEnginePage):
             script,
             injection_point=QWebEngineScript.DocumentCreation,
             subframes=True
-        ) 
-
+        )
+        
     def inject_all_scripts(self):
         self.stealth_webrtc_block()
         self.block_webrtc_sdp_logging()
@@ -1737,6 +1736,7 @@ class HardenedWebPage(QWebEnginePage):
         self.inject_hw_concurrency_spoof()
         self.inject_iframe_environment_harmonizer()
         self.inject_stealth_chrome_environment()
+        self.inject_global_chrome_spoof()
         self.inject_youtube_js_spoof()
         self.inject_global_chrome_spoof()
 
@@ -2009,7 +2009,7 @@ class DarkelfBrowser(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
-        self.tabs.setDocumentMode(True)  # 🔥 IMPORTANT
+        self.tabs.setDocumentMode(False)  # 🔥 IMPORTANT
 
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
@@ -2342,11 +2342,27 @@ class DarkelfBrowser(QMainWindow):
 
         stats = self.mini_ai.get_statistics()
 
-        recent_upgrades = [
-            e
-            for e in self.mini_ai.events
-            if "HTTP_AUTO_UPGRADE" in e.get("threats", [])
-        ][-5:]
+        base = QColor(self.accent_color)
+
+        accent  = base.name()
+        accent2 = base.lighter(130).name()
+        accent3 = base.darker(130).name()
+
+        accent_rgba  = f"rgba({base.red()}, {base.green()}, {base.blue()}, .45)"
+
+        accent2_rgba = (
+            f"rgba({base.lighter(130).red()}, "
+            f"{base.lighter(130).green()}, "
+            f"{base.lighter(130).blue()}, .40)"
+        )
+
+        accent3_rgba = (
+            f"rgba({base.darker(130).red()}, "
+            f"{base.darker(130).green()}, "
+            f"{base.darker(130).blue()}, .45)"
+        )
+
+        grid_rgba = f"rgba({base.red()}, {base.green()}, {base.blue()}, .18)"
 
         return f"""
     <!DOCTYPE html>
@@ -2377,9 +2393,9 @@ class DarkelfBrowser(QMainWindow):
 
     :root {{
     --bg:#05060a;
-    --accent:#36ff9a;
-    --accent2:#00eaff;
-    --accent3:#b400ff;
+    --accent:{accent};
+    --accent2:{accent2};
+    --accent3:{accent3};
     --danger:#ff3b30;
     --warn:#ffd36b;
     --muted:#9db0be;
@@ -2391,10 +2407,20 @@ class DarkelfBrowser(QMainWindow):
 
     body{{
     background:
-    radial-gradient(1200px 800px at 15% -10%, rgba(0,234,255,.35), transparent 70%),
-    radial-gradient(900px 600px at 110% 0%, rgba(54,255,154,.35), transparent 70%),
-    radial-gradient(1200px 700px at 50% 120%, rgba(180,0,255,.35), transparent 70%),
+    radial-gradient(1200px 800px at 15% -10%,
+    {accent_rgba},
+    transparent 70%),
+
+    radial-gradient(900px 600px at 110% 0%,
+    {accent2_rgba},
+    transparent 70%),
+
+    radial-gradient(1200px 700px at 50% 120%,
+    {accent3_rgba},
+    transparent 70%),
+
     var(--bg);
+
     color:#eef2f6;
     }}
 
@@ -2402,12 +2428,22 @@ class DarkelfBrowser(QMainWindow):
     content:"";
     position:fixed;
     inset:0;
+
     background:
-    linear-gradient(rgba(0,255,180,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,180,.05) 1px, transparent 1px);
+    linear-gradient(
+    {grid_rgba} 1px,
+    transparent 1px
+    ),
+
+    linear-gradient(
+    90deg,
+    {grid_rgba} 1px,
+    transparent 1px
+    );
+
     background-size:40px 40px;
     pointer-events:none;
-    opacity:.3;
+    opacity:.22;
     }}
 
     .scanline {{
@@ -2453,9 +2489,9 @@ class DarkelfBrowser(QMainWindow):
     border-radius:50%;
     }}
 
-    .green {{background:#36ff9a;box-shadow:0 0 10px #36ff9a}}
-    .cyan {{background:#00eaff;box-shadow:0 0 10px #00eaff}}
-    .purple {{background:#b400ff;box-shadow:0 0 10px #b400ff}}
+    .green {{background:var(--accent)}}
+    .cyan {{background:var(--accent2)}}
+    .purple {{background:var(--accent3)}}
 
     .badge {{
     display:inline-flex;
@@ -2499,7 +2535,7 @@ class DarkelfBrowser(QMainWindow):
     padding:40px;
     border-radius:18px;
     border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 40px rgba(0,234,255,.15);
+    box-shadow:0 0 40px {accent2_rgba};
     }}
 
     .section-title {{
@@ -2832,6 +2868,8 @@ class DarkelfBrowser(QMainWindow):
         canvas_seed = tab_seed ^ BOOTUP_CANVAS_SEED
 
         view = QWebEngineView(self)
+        view.setFocusPolicy(Qt.StrongFocus)
+        view.installEventFilter(self)
         view._profile = profile
 
         page = HardenedWebPage(view, profile, canvas_seed=canvas_seed)
@@ -2951,7 +2989,114 @@ class DarkelfBrowser(QMainWindow):
         # reopen homepage if all tabs closed
         if self.tabs.count() == 0:
             self._add_tab(home=True)
+            
+    def setup_hotkeys(self):
 
+        # --------------------------------
+        # Shared shortcut context fix
+        # --------------------------------
+        shortcut_context = Qt.WindowShortcut
+
+        # --------------------------------
+        # Ctrl+T -> New tab
+        # --------------------------------
+        new_tab_action = QAction(self)
+
+        new_tab_action.setShortcut(
+            QKeySequence("Ctrl+T")
+        )
+
+        new_tab_action.setShortcutContext(
+            shortcut_context
+        )
+
+        new_tab_action.triggered.connect(
+            self.new_tab
+        )
+
+        self.addAction(new_tab_action)
+
+        # --------------------------------
+        # Ctrl+W -> Close current tab
+        # --------------------------------
+        close_tab_action = QAction(self)
+
+        close_tab_action.setShortcut(
+            QKeySequence("Ctrl+W")
+        )
+
+        close_tab_action.setShortcutContext(
+            shortcut_context
+        )
+
+        close_tab_action.triggered.connect(
+            lambda: self.close_tab(
+                self.tabs.currentIndex()
+            )
+        )
+
+        self.addAction(close_tab_action)
+
+        # --------------------------------
+        # Ctrl+R -> Reload
+        # --------------------------------
+        reload_action = QAction(self)
+
+        reload_action.setShortcut(
+            QKeySequence("Ctrl+R")
+        )
+
+        reload_action.setShortcutContext(
+            shortcut_context
+        )
+
+        reload_action.triggered.connect(
+            self.reload_page
+        )
+
+        self.addAction(reload_action)
+
+        # --------------------------------
+        # Ctrl+L -> Focus URL bar
+        # --------------------------------
+        focus_action = QAction(self)
+
+        focus_action.setShortcut(
+            QKeySequence("Ctrl+L")
+        )
+
+        focus_action.setShortcutContext(
+            shortcut_context
+        )
+
+        focus_action.triggered.connect(
+            lambda: (
+                self.addr.setFocus(),
+                self.addr.selectAll()
+            )
+        )
+
+        self.addAction(focus_action)
+
+        # --------------------------------
+        # Ctrl+Shift+S -> Snapshot
+        # --------------------------------
+        snapshot_action = QAction(self)
+
+        snapshot_action.setShortcut(
+            QKeySequence("Ctrl+Shift+S")
+        )
+
+        snapshot_action.setShortcutContext(
+            shortcut_context
+        )
+
+        snapshot_action.triggered.connect(
+            self.take_snapshot
+        )
+
+        self.addAction(snapshot_action)
+        
     def take_snapshot(self):
         view = self.tabs.currentWidget()
         if not view:
@@ -2979,57 +3124,6 @@ class DarkelfBrowser(QMainWindow):
         self.debounce_cleanup
 
         print(f"[Darkelf] Snapshot saved → {path}")
-
-    def setup_hotkeys(self):
-
-        # New tab
-        new_tab_action = QAction(self)
-        new_tab_action.setShortcut("Ctrl+T")
-        new_tab_action.triggered.connect(self.new_tab)
-        self.addAction(new_tab_action)
-
-        # Close tab
-        close_tab_action = QAction(self)
-        close_tab_action.setShortcut("Ctrl+W")
-        close_tab_action.triggered.connect(self.close_tab)
-        self.addAction(close_tab_action)
-
-        # Reload
-        reload_action = QAction(self)
-        reload_action.setShortcut("Ctrl+R")
-        reload_action.triggered.connect(self.reload_page)
-        self.addAction(reload_action)
-
-        # Focus URL
-        focus_url_action = QAction(self)
-        focus_url_action.setShortcut("Ctrl+L")
-        focus_url_action.triggered.connect(lambda: self.url_bar.setFocus())
-
-        # Next tab
-        next_tab_action = QAction(self)
-        next_tab_action.setShortcut("Ctrl+Tab")
-        next_tab_action.triggered.connect(
-            lambda: self.tabs.setCurrentIndex(
-                (self.tabs.currentIndex() + 1) % self.tabs.count()
-            )
-        )
-        self.addAction(next_tab_action)
-
-        # Previous tab
-        prev_tab_action = QAction(self)
-        prev_tab_action.setShortcut("Ctrl+Shift+Tab")
-        prev_tab_action.triggered.connect(
-            lambda: self.tabs.setCurrentIndex(
-                (self.tabs.currentIndex() - 1) % self.tabs.count()
-            )
-        )
-        self.addAction(prev_tab_action)
-
-        # Snapshot
-        snapshot_action = QAction(self)
-        snapshot_action.setShortcuts(["Ctrl+Shift+S", "Meta+Shift+S"])
-        snapshot_action.triggered.connect(self.take_snapshot)
-        self.addAction(snapshot_action)
 
     def _cleanup_webengine(self):
         # Close tabs from last to first
