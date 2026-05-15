@@ -198,26 +198,6 @@ def make_house_icon(color: str, size: int) -> QIcon:
     p.end()
     return QIcon(pix)
 
-
-def make_zoom_icon(sign: str, color: str, size: int) -> QIcon:
-    pix = QPixmap(size, size)
-    pix.fill(Qt.transparent)
-    p = QPainter(pix)
-    p.setRenderHint(QPainter.Antialiasing)
-    pen_width = max(2, size // 10)
-    pen = QPen(QColor(color), pen_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-    p.setPen(pen)
-    center = size / 2
-    length = size * 0.15
-    if sign == "+":
-        p.drawLine(QPointF(center - length, center), QPointF(center + length, center))
-        p.drawLine(QPointF(center, center - length), QPointF(center, center + length))
-    else:
-        p.drawLine(QPointF(center - length, center), QPointF(center + length, center))
-    p.end()
-    return QIcon(pix)
-
-
 def make_fullscreen_icon(color: str, size: int) -> QIcon:
     pix = QPixmap(size, size)
     pix.fill(Qt.transparent)
@@ -2314,8 +2294,6 @@ class DarkelfBrowser(QMainWindow):
         self.fwd_action = QAction(make_nav_arrow_icon("right", c, 22), "Forward", self)
         self.reload_action = QAction(make_reload_icon(c, 22), "Reload", self)
         self.home_action = QAction(make_house_icon(c, 22), "Home", self)
-        self.zoom_in_action = QAction(make_zoom_icon("+", c, 20), "Zoom In", self)
-        self.zoom_out_action = QAction(make_zoom_icon("-", c, 20), "Zoom Out", self)
         self.full_action = QAction(make_fullscreen_icon(c, 20), "Full Screen", self)
 
         self.java_action = QAction(
@@ -2334,8 +2312,6 @@ class DarkelfBrowser(QMainWindow):
         self.fwd_action.triggered.connect(self.go_fwd)
         self.reload_action.triggered.connect(self.reload)
         self.home_action.triggered.connect(self.go_home)
-        self.zoom_in_action.triggered.connect(self.zoom_in)
-        self.zoom_out_action.triggered.connect(self.zoom_out)
         self.full_action.triggered.connect(self.toggle_fullscreen)
 
         tb.addAction(self.back_action)
@@ -3277,6 +3253,7 @@ class DarkelfBrowser(QMainWindow):
         v = self.current_view()
         if v:
             v.setZoomFactor(1.0)
+            
     def show_hotkey_help(self):
 
         html = f"""
