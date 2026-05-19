@@ -1,7 +1,7 @@
 # Darkelf Nexus
 
 <p align="center">
-  <img src="https://github.com/Darkelf2024/Darkelf-Nexus/blob/main/Nexus_Home_New.png"
+  <img src=""
        alt="Darkelf Nexus Browser"
        width="900">
 </p>
