@@ -72,7 +72,6 @@ import traceback
 
 
 def boot_done(splash, app, engine, ai):
-    print("[DEBUG] boot_done called")
 
     try:
         app.setQuitOnLastWindowClosed(True)
@@ -80,7 +79,6 @@ def boot_done(splash, app, engine, ai):
         # -----------------------------
         # PROFILE SETUP (FINAL FIX)
         # -----------------------------
-        print("[DEBUG] creating profile...")
 
         # 🔥 CRITICAL: empty storage name = off-the-record in PySide6
         profile = QWebEngineProfile("", app)
@@ -115,11 +113,8 @@ def boot_done(splash, app, engine, ai):
         # -----------------------------
         # CREATE BROWSER
         # -----------------------------
-        print("[DEBUG] creating browser...")
 
         browser = DarkelfBrowser(profile, ai, engine)
-
-        print("[DEBUG] browser created")
 
         app._browser = browser
 
@@ -132,8 +127,6 @@ def boot_done(splash, app, engine, ai):
 
         browser.repaint()
         browser.update()
-
-        print("[DEBUG] browser shown")
 
         # -----------------------------
         # CLOSE SPLASH LAST
