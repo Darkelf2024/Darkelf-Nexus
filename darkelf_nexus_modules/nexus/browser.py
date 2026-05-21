@@ -2115,8 +2115,21 @@ class DarkelfBrowser(QMainWindow):
         self.resize(1200, 800)
         
         # ✅ macOS FIX (PUT HERE)
-        self.setUnifiedTitleAndToolBarOnMac(True)
 
+        # ADD THIS
+        self.setUnifiedTitleAndToolBarOnMac(False)
+
+        self.setStyleSheet("""
+        QMainWindow {
+            background-color: #000000;
+        }
+
+        QToolBar {
+            background-color: #000000;
+            border: none;
+        }
+        """)
+        
         self.shared_profile = profile
         print("OffTheRecord:", self.shared_profile.isOffTheRecord())
 
